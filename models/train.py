@@ -60,6 +60,7 @@ if __name__ == "__main__":
     model = LinearRegression(learning_rate=0.01, n_iterations=5000)
     model.fit(X_train, y_train)
 
+    baseline_predictions = np.full(len(y_test), y_train.mean())
     predictions = model.predict(X_test)
 
     results_dir = PROJECT_DIR / "data" / "processed"
@@ -67,7 +68,8 @@ if __name__ == "__main__":
 
     pd.DataFrame({
         "actual": y_test,
-        "predicted": predictions
+        "predicted": predictions,
+        "baseline": baseline_predictions
     }).to_csv(results_dir / "test_predictions.csv", index=False)
 
     pd.DataFrame({
