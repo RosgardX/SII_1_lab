@@ -2,7 +2,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from data_loader import load_dataset, PLOTS_DIR
+from part_a.data_loader import load_dataset, PLOTS_DIR
 
 
 def print_statistics(df: pd.DataFrame) -> None:

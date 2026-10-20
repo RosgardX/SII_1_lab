@@ -2,8 +2,8 @@
 import numpy as np
 import pandas as pd
 
-from data_loader import load_dataset, PROJECT_DIR
-from models.linear_regression import LinearRegression
+from part_a.data_loader import load_dataset, PROJECT_DIR
+from part_a.models.linear_regression import LinearRegression
 
 
 def split_data(

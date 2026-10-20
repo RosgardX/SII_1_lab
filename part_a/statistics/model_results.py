@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from data_loader import PROJECT_DIR, PLOTS_DIR
+from part_a.data_loader import PROJECT_DIR, PLOTS_DIR
 
 
 RESULTS_DIR = PROJECT_DIR / "data" / "processed"

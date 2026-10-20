@@ -1,4 +1,4 @@
-from data_loader import load_dataset, PROCESSED_DATA_PATH
+from part_a.data_loader import load_dataset, PROCESSED_DATA_PATH
 
 import pandas as pd
 
