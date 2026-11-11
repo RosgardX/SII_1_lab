@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-from part_b.data_loader import load_data
+from part_1_b.data_loader import load_data
 
 def show_initial_statistics(data: pd.DataFrame) -> None:
     """Выводит общую начальную статистику датасета."""

@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 
-from part_b.data_loader import load_data
-from part_b.preprocessing.prepare_data import (
+from part_1_b.data_loader import load_data
+from part_1_b.preprocessing.prepare_data import (
     PROJECT_DIR, prepare_dataset, fit_preprocessor, transform
 )
-from part_b.models.logistic_regression import LogisticRegression
+from part_1_b.models.logistic_regression import LogisticRegression
 
 
 def split_data(df: pd.DataFrame, test_size: float = 0.2, random_state: int = 42):

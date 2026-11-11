@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from part_b.data_loader import load_data
+from part_1_b.data_loader import load_data
 
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -18,7 +18,6 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     """Создаёт новые признаки из PassengerId и Cabin."""
     df = df.copy()
 
-    # PassengerId = gggg_pp, где gggg — номер группы (семья / компания)
     df["Group"] = df["PassengerId"].str.split("_").str[0]
     df["GroupSize"] = df.groupby("Group")["PassengerId"].transform("count")
     df["IsAlone"] = (df["GroupSize"] == 1).astype(int)

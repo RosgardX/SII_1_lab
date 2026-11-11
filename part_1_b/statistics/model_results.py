@@ -6,7 +6,7 @@ from sklearn.metrics import (
     log_loss, confusion_matrix
 )
 
-from part_b.preprocessing.prepare_data import PROJECT_DIR
+from part_1_b.preprocessing.prepare_data import PROJECT_DIR
 
 
 RESULTS_DIR = PROJECT_DIR / "data" / "processed"
