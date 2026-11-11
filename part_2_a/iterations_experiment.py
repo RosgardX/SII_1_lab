@@ -9,7 +9,6 @@ from part_2_a.models.regularized_logistic_regression import RegularizedLogisticR
 
 
 TOLERANCE = 0.001
-COLORS = ["#86b6ef", "#5598e7", "#2a78d6", "#1c5cab", "#104281"]
 
 SETUPS = {
     "linear": {
@@ -19,8 +18,7 @@ SETUPS = {
         "metric": lambda model, X, y: rmse(y, model.predict(X)),
         "metric_name": "RMSE",
         "loss_name": "MSE",
-        "learning_rates": [0.001, 0.003, 0.01, 0.03, 0.1],
-        "chosen_lr": 0.01,
+        "learning_rate": 0.01,
         "iterations": [100, 300, 1000, 3000, 10000, 30000],
     },
     "logistic": {
@@ -30,57 +28,48 @@ SETUPS = {
         "metric": lambda model, X, y: log_loss(y, model.predict_proba(X)),
         "metric_name": "LogLoss",
         "loss_name": "LogLoss",
-        "learning_rates": [0.01, 0.03, 0.1, 0.3, 1.0],
-        "chosen_lr": 0.1,
+        "learning_rate": 0.1,
         "iterations": [100, 300, 1000, 3000, 10000],
     },
 }
 
 
-def run_attempts(setup: dict, data: dict) -> tuple[pd.DataFrame, dict]:
-    """Обучает модель без штрафа для каждой пары (lr, число итераций)."""
-    rows, histories = [], {}
+def run_attempts(setup: dict, data: dict) -> tuple[pd.DataFrame, list]:
+    """Обучает модель без штрафа с разным числом итераций."""
+    rows = []
 
-    for lr in setup["learning_rates"]:
-        for n_iterations in setup["iterations"]:
-            model = setup["model"](learning_rate=lr, n_iterations=n_iterations)
-            model.fit(data["X_train"], data["y_train"])
-            rows.append({
-                "learning_rate": lr,
-                "n_iterations": n_iterations,
-                "train": setup["metric"](model, data["X_train"], data["y_train"]),
-            })
-        histories[lr] = model.loss_history
+    for n_iterations in setup["iterations"]:
+        model = setup["model"](learning_rate=setup["learning_rate"], n_iterations=n_iterations)
+        model.fit(data["X_train"], data["y_train"])
+        rows.append({
+            "n_iterations": n_iterations,
+            "train": setup["metric"](model, data["X_train"], data["y_train"]),
+        })
 
-    return pd.DataFrame(rows), histories
+    return pd.DataFrame(rows), model.loss_history   # кривая самого длинного запуска
 
 
-def choose_iterations(results: pd.DataFrame, lr: float) -> int:
+def choose_iterations(results: pd.DataFrame) -> int:
     """Минимальное число итераций, после которого train меняется меньше чем на TOLERANCE."""
-    runs = results[results["learning_rate"] == lr].sort_values("n_iterations")
-    final = runs["train"].iloc[-1]
-    converged = runs[np.abs(runs["train"] - final) <= abs(final) * TOLERANCE]
+    final = results["train"].iloc[-1]
+    converged = results[np.abs(results["train"] - final) <= abs(final) * TOLERANCE]
     return int(converged["n_iterations"].iloc[0])
 
 
 def plot_train_vs_iterations(results: pd.DataFrame, setup: dict, chosen: int, path):
-    """Метрика на train от числа итераций — по линии на каждый learning rate."""
+    """Метрика на train для каждого запуска."""
     fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(results["n_iterations"], results["train"], color="#2a78d6", linewidth=2,
+            marker="o", markersize=8, label="запуски")
 
-    for color, lr in zip(COLORS, setup["learning_rates"]):
-        runs = results[results["learning_rate"] == lr]
-        width = 3 if lr == setup["chosen_lr"] else 1.5
-        ax.plot(runs["n_iterations"], runs["train"], color=color, linewidth=width,
-                marker="o", markersize=7, label=f"lr = {lr:g}")
-
-    chosen_train = results.query("learning_rate == @setup['chosen_lr'] and n_iterations == @chosen")["train"]
-    ax.scatter(chosen, chosen_train, s=200, facecolors="none", edgecolors="black", linewidths=1.5,
-               zorder=5, label=f"выбрано: lr = {setup['chosen_lr']:g}, {chosen} итераций")
+    chosen_train = results.loc[results["n_iterations"] == chosen, "train"]
+    ax.scatter(chosen, chosen_train, s=220, facecolors="none", edgecolors="black", linewidths=1.5,
+               zorder=5, label=f"выбрано: {chosen} итераций")
 
     ax.set_xscale("log")
     ax.set_xlabel("Число итераций (лог. шкала)")
     ax.set_ylabel(f"{setup['metric_name']} на train")
-    ax.set_title(f"{setup['title']}: качество на train при разном числе итераций")
+    ax.set_title(f"{setup['title']}: запуски с разным числом итераций (lr = {setup['learning_rate']:g})")
     ax.grid(True, alpha=0.3)
     ax.legend()
     fig.tight_layout()
@@ -88,20 +77,17 @@ def plot_train_vs_iterations(results: pd.DataFrame, setup: dict, chosen: int, pa
     plt.close(fig)
 
 
-def plot_loss_curves(histories: dict, setup: dict, chosen: int, path):
-    """Кривые loss на train для самого длинного запуска каждого learning rate."""
+def plot_loss_curve(history: list, setup: dict, chosen: int, path):
+    """Кривая loss на train самого длинного запуска."""
     fig, ax = plt.subplots(figsize=(10, 6))
-
-    for color, (lr, history) in zip(COLORS, histories.items()):
-        width = 3 if lr == setup["chosen_lr"] else 1.5
-        ax.plot(np.arange(1, len(history) + 1), history, color=color, linewidth=width, label=f"lr = {lr:g}")
-
+    ax.plot(np.arange(1, len(history) + 1), history, color="#2a78d6", linewidth=2, label="loss на train")
     ax.axvline(chosen, color="black", linestyle="--", linewidth=1.5, label=f"выбрано: {chosen} итераций")
+
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel("Итерация (лог. шкала)")
     ax.set_ylabel(f"{setup['loss_name']} на train (лог. шкала)")
-    ax.set_title(f"{setup['title']}: кривые обучения")
+    ax.set_title(f"{setup['title']}: кривая обучения (lr = {setup['learning_rate']:g})")
     ax.grid(True, alpha=0.3)
     ax.legend()
     fig.tight_layout()
@@ -114,18 +100,17 @@ if __name__ == "__main__":
     PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
     for name, setup in SETUPS.items():
-        print(f"\n{setup['title']}")
+        print(f"\n{setup['title']}, lr = {setup['learning_rate']}")
         data = setup["load"]()
-        results, histories = run_attempts(setup, data)
-        chosen = choose_iterations(results, setup["chosen_lr"])
+        results, history = run_attempts(setup, data)
+        chosen = choose_iterations(results)
 
         results.to_csv(RESULTS_DIR / f"{name}_iterations.csv", index=False)
         plot_train_vs_iterations(results, setup, chosen, PLOTS_DIR / f"{name}_iterations_train.png")
-        plot_loss_curves(histories, setup, chosen, PLOTS_DIR / f"{name}_iterations_loss.png")
+        plot_loss_curve(history, setup, chosen, PLOTS_DIR / f"{name}_iterations_loss.png")
 
-        table = results.pivot(index="n_iterations", columns="learning_rate", values="train")
-        print(f"{setup['metric_name']} на train (строки — итерации, столбцы — learning rate):")
-        print(table.to_string(float_format=lambda v: f"{v:.4g}"))
-        print(f"Выбрано: lr = {setup['chosen_lr']}, {chosen} итераций")
+        print(results.rename(columns={"train": f"{setup['metric_name']} train"})
+              .to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+        print(f"Выбрано: {chosen} итераций")
 
     print(f"\nРезультаты: {RESULTS_DIR}\nГрафики: {PLOTS_DIR}")
