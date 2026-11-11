@@ -5,7 +5,7 @@ from part_2_a.regularization import Regularization
 
 
 class RegularizedLinearRegression(LinearRegression):
-    """Линейная регрессия с L1/L2/ElasticNet регуляризацией."""
+    """Линейная регрессия с L1/L2/ElasticNet регуляризацией"""
 
     def __init__(
         self,
@@ -19,11 +19,11 @@ class RegularizedLinearRegression(LinearRegression):
         self.regularization = Regularization(penalty, alpha, l1_ratio)
 
     def compute_loss(self, X: np.ndarray, y: np.ndarray) -> float:
-        """MSE + штраф за веса."""
+        """MSE + штраф за веса"""
         return super().compute_loss(X, y) + self.regularization.loss(self.weights)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Градиентный спуск с учётом штрафа (bias не штрафуется)."""
+        """Градиентный спуск с учётом штрафа"""
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float).ravel()
 

@@ -10,7 +10,7 @@ def split_data(
     X: np.ndarray,
     y: np.ndarray,
     test_size: float = 0.2,
-    random_state: int = 42
+    random_state: int = 13
 ):
     """Разделяет данные на обучающую и тестовую выборки."""
     rng = np.random.default_rng(random_state)

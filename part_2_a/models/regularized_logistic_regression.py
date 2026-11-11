@@ -5,7 +5,7 @@ from part_2_a.regularization import Regularization
 
 
 class RegularizedLogisticRegression(LogisticRegression):
-    """Логистическая регрессия из ЛР1 с L1/L2/ElasticNet регуляризацией."""
+    """Логистическая регрессия с L1/L2/ElasticNet регуляризацией"""
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class RegularizedLogisticRegression(LogisticRegression):
         return super().compute_loss(y, probabilities) + self.regularization.loss(self.weights)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """Градиентный спуск с учётом штрафа (bias не штрафуется)."""
+        """Градиентный спуск с учётом штрафа"""
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float).ravel()
 
